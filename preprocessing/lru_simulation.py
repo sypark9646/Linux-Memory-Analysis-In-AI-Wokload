@@ -55,7 +55,7 @@ def totxt(pointer, write_file_name, ranking_access):
 def main(read_file_name, STEP):
   print("process", read_file_name, "and save every", str(STEP), "lines.")
   index = read_file_name.rfind(".")
-  write_file_name = read_file_name[:-4]
+  write_file_name = read_file_name[:index]
 
   ranking_access = {}
   cache = LRUCache()
