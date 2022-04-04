@@ -14,6 +14,24 @@ import argparse
 import os
 import sys
 
+def save_graph(df, output_img_name, x_name, y_name, x_label, y_label):
+  plt.style.use('default')
+  plt.rcParams['figure.figsize'] = (12, 10)
+
+  fig, ax = plt.subplots(figsize=(12,10))
+  x = df[x_name]
+  y = df[y_name]
+
+  plt.scatter(x, y, color='blue', s=1)
+
+  ax.set_xlabel(x_label)
+  ax.set_ylabel(y_label)
+  ax.legend(loc='best')
+  plt.savefig(f'{output_img_name}_linearscale.png') # save linear scale graph
+  
+  ax.set_xscale('log')
+  ax.set_yscale('log')
+  plt.savefig(f'{output_img_name}_logscale.png') #save log scale graph
 
 def main(read_file_name):
   index = read_file_name.rfind(".")
@@ -23,21 +41,10 @@ def main(read_file_name):
                  comment='=' ## Convert address to page(4KB)
                  )
 
-  plt.style.use('default')
-  plt.rcParams['figure.figsize'] = (12, 10)
-  #plt.rcParams['font.size'] = 12
-
-  fig, ax = plt.subplots(figsize=(12,10))
-  x = df['rank']
-  y = df['access_number']
-
-  plt.scatter(x, y, color='blue', s=1)
-
-  ax.set_xlabel('LRU rank')
-  ax.set_ylabel('access count')
-  ax.legend(loc='best')
-
-  plt.savefig(f'{output_img_name}.png')
+  save_graph(df, output_img_name, 'rank', 'access_number', 'LRU rank', 'access count')
+  df['access_cum'] = df['access_number'].cumsum()
+  df['access_cum_perc'] = 100 * df['access_cum']/df['access_number'].sum()
+  save_graph(df, f"{output_img_name}_accumulated", 'rank', 'access_cum_perc', 'LRU rank', 'accumulative access count\(\%\)')
 
 def is_valid_file(parser, arg):
   if not os.path.exists(arg):
@@ -53,3 +60,4 @@ if __name__ == "__main__":
                     type=lambda x: is_valid_file(parser, x))
   args = parser.parse_args()
   main(args.filename)
+  
