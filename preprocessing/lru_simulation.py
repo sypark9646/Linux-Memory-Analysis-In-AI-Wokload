@@ -9,6 +9,7 @@ Original file is located at
 
 from collections import OrderedDict
 from alive_progress import alive_bar
+import pandas as pd
 import argparse
 import os
 import sys
@@ -62,15 +63,15 @@ def main(read_file_name, STEP):
 
   pointer = 0
   num_lines = sum(1 for line in open(read_file_name))
-  with open(read_file_name) as f:
+  for chunks in pd.read_csv(read_file_name, chunksize=STEP, skiprows = 1, names=['type', 'address', 'size', 'block_address'], skipinitialspace=True, delim_whitespace=True, lineterminator="\n"):
     with alive_bar(num_lines, force_tty=True) as bar:
-      for line in f:
-        data_type, address, size, block_address = line.split()
+      chunks = chunks.reset_index()
+      for index, chunk in chunks.iterrows():
         rank = -1
-        if data_type.startswith('read'):
-          rank = cache.read(block_address)
+        if chunk['type'].startswith('read'):
+          rank = cache.read(chunk['block_address'])
         else: #data_type.startswith('write'):
-          rank = cache.write(block_address)
+          rank = cache.write(chunk['block_address'])
 
         if rank != -1:
           ranking_access.setdefault(rank, 0)
@@ -78,9 +79,9 @@ def main(read_file_name, STEP):
     
         pointer += 1
         time.sleep(.005)
-        if pointer % STEP == 0:
-          tojson(pointer, write_file_name, ranking_access) # check point
         bar()
+      
+      tojson(pointer, write_file_name, ranking_access) # check point
   totxt(pointer, write_file_name, ranking_access)
 
 def is_valid_file(parser, arg):
@@ -95,7 +96,7 @@ if __name__ == "__main__":
   parser.add_argument("-i", dest="filename", required=True,
                     help="input cleared trace data",
                     type=lambda x: is_valid_file(parser, x))
-  parser.add_argument("-c", dest="step", default=100000, type=int,
+  parser.add_argument("-c", dest="step", default=1000000, type=int,
                     help="checkpoint for step")
   args = parser.parse_args()
   main(args.filename, args.step)
