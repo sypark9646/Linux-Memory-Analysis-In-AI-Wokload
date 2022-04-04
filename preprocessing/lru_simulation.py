@@ -41,7 +41,7 @@ class LRUCache: # Both reads & writes affect rank changes
 
 def tojson(pointer, write_file_name, ranking_access):
   with open(f"{write_file_name}_LRU_{pointer}.json", 'w') as fp:
-    json.dump(my_dict, fp)
+    json.dump(ranking_access, fp)
   print("saved", f"{write_file_name}_LRU_{pointer}.json")
 
 def totxt(pointer, write_file_name, ranking_access):
