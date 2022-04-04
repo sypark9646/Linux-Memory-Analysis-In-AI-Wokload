@@ -8,7 +8,12 @@ Original file is located at
 """
 
 from collections import OrderedDict
- 
+import argparse
+import os
+import sys
+from alive_progress import alive_bar
+import time
+
 class LRUCache: # Both reads & writes affect rank changes
     def __init__(self):
         self.cache = OrderedDict()
@@ -38,31 +43,52 @@ def tocsv(pointer, write_file_name, ranking_access):
   file_write.write("rank access_number\n")
   for rank in sorted(ranking_access):
     file_write.write(str(rank)+" "+str(ranking_access[rank])+"\n")
+  print("saved", f"{write_file_name}_LRU_{pointer}.txt")
   file_write.close()
 
-read_file_name = "raw_data_clear.txt"
-write_file_name = read_file_name[:-4]
+def main(read_file_name, STEP):
+  print("process", read_file_name, "and save every", str(STEP), "lines.")
+  index = read_file_name.rfind(".")
+  write_file_name = read_file_name[:index]
 
-ranking_access = {}
-cache = LRUCache()
+  ranking_access = {}
+  cache = LRUCache()
 
-pointer = 0
-STEP = 100000
-with open(read_file_name) as f:
-  for line in f:
-    data_type, address, size = line.split()
-    block_address = int(str(address), 16)
-    rank = -1
-    if data_type.startswith('read'):
-      rank = cache.read(block_address)
-    elif data_type.startswith('write'):
-      rank = cache.write(block_address)
+  pointer = 0
+  num_lines = sum(1 for line in open(read_file_name))
+  with open(read_file_name) as f:
+    with alive_bar(num_lines, force_tty=True) as bar:
+      for line in f:
+        data_type, address, size, block_address = line.split()
+        rank = -1
+        if data_type.startswith('read'):
+          rank = cache.read(block_address)
+        elif data_type.startswith('write'):
+          rank = cache.write(block_address)
 
-    if rank != -1:
-      ranking_access.setdefault(rank, 0)
-      ranking_access[rank] = ranking_access[rank] + 1
+        if rank != -1:
+          ranking_access.setdefault(rank, 0)
+          ranking_access[rank] = ranking_access[rank] + 1
     
-    pointer += 1
-    if pointer % STEP == 0:
-      tocsv(pointer, write_file_name, ranking_access)
+        pointer += 1
+        time.sleep(.005)
+        if pointer == num_lines or pointer % STEP == 0:
+          tocsv(pointer, write_file_name, ranking_access) # check point
+        bar()
 
+def is_valid_file(parser, arg):
+  if not os.path.exists(arg):
+      parser.error("The file %s does not exist" % arg)
+  else:
+      return arg
+      
+      
+if __name__ == "__main__":
+  parser = argparse.ArgumentParser(description = 'simulation LRU policy and return ranking - access count txt file')
+  parser.add_argument("-i", dest="filename", required=True,
+                    help="input cleared trace data",
+                    type=lambda x: is_valid_file(parser, x))
+  parser.add_argument("-c", dest="step", default=100000, type=int,
+                    help="checkpoint for step")
+  args = parser.parse_args()
+  main(args.filename, args.step)
