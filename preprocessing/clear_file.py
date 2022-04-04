@@ -14,7 +14,7 @@ import sys
 def main(read_file_name):
   print("clear", read_file_name)
   index = read_file_name.rfind(".")
-  write_file_name = read_file_name[:-4]+"_clear.txt"
+  write_file_name = read_file_name[:index]+"_clear.txt"
   file_write = open(write_file_name, "w");
   file_write.write("type address size block_address\n") # write header
   file_write.close()
