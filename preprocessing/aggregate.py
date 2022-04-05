@@ -19,7 +19,7 @@ def main(read_file_name, chunksize):
   pieces = [x.groupby(['type', 'block_address']).size().reset_index(name='count') for x in chunks]
 
   agg = pd.concat(pieces).groupby(['type', 'block_address'])['count'].sum().reset_index(name='count')
-  agg.to_csv(f"{write_file_name}_aggregated.txt", index=False)
+  agg.to_csv(f"{write_file_name}_aggregated.csv", index=False)
 
 def is_valid_file(parser, arg):
   if not os.path.exists(arg):
