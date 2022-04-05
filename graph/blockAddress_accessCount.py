@@ -43,15 +43,45 @@ def main(read_file_name):
   y2 = df['readdcount']
   y3 = df['writecount']
 
-  plt.scatter(x, y3, color='red', label='write')
-  plt.scatter(x, y2, color='blue', label='read data')
-  plt.scatter(x, y1, color='yellow', label='read instruction')
+  plt.scatter(x, y3, color='red', label='write', s=1)
+  plt.scatter(x, y2, color='blue', label='read data', s=1)
+  plt.scatter(x, y1, color='yellow', label='read instruction', s=1)
 
   ax.set_xlabel('blockaddress')
   ax.set_ylabel('count')
   ax.legend(loc='best')
 
   plt.savefig(f'{output_img_name}_blockAddress_accessCount.png')
+
+  fig, ax = plt.subplots(3, constrained_layout=True) # sharex=True
+
+  x = groupdf['blockaddress_int']
+  y1 = groupdf['readicount']
+  y2 = groupdf['readdcount']
+  y3 = groupdf['writecount']
+
+  # readi graph
+  ax[0].scatter(x, y1, color='yellow', label='read instruction', s=1)
+  # legend
+  ax[0].set_xlabel('(virtual) memory block address')
+  ax[0].set_ylabel('memory block access count')
+  ax[0].legend(loc='best', ncol=1)
+
+  # readd graph
+  ax[1].scatter(x, y2, color='blue', label='read data', s=1)
+  # legend
+  ax[1].set_xlabel('(virtual) memory block address')
+  ax[1].set_ylabel('memory block access count')
+  ax[1].legend(loc='best', ncol=1) #loc = 'best'
+
+  # write graph
+  ax[2].scatter(x, y3, color='red', label='write', s=1)
+  # legend
+  ax[2].set_xlabel('(virtual) memory block address')
+  ax[2].set_ylabel('memory block access count')
+  ax[2].legend(loc='best', ncol=1) #loc = 'best'
+  
+  plt.savefig(f'{output_img_name}_blockAddress_accessCount_separated.png')
 
 def is_valid_file(parser, arg):
   if not os.path.exists(arg):
