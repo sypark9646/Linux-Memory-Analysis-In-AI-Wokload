@@ -27,11 +27,11 @@ def save_graph(df, output_img_name, x_name, y_name, x_label, y_label):
   ax.set_xlabel(x_label)
   ax.set_ylabel(y_label)
   ax.legend(loc='best')
-  plt.savefig(f'{output_img_name}_linearscale.png') # save linear scale graph
+  plt.savefig(f'{output_img_name}_rankingLRU_accessCounts_linearscale.png') # save linear scale graph
   
   ax.set_xscale('log')
   ax.set_yscale('log')
-  plt.savefig(f'{output_img_name}_logscale.png') #save log scale graph
+  plt.savefig(f'{output_img_name}_rankingLRU_accessCounts_logscale.png') #save log scale graph
 
 def main(read_file_name):
   index = read_file_name.rfind(".")
