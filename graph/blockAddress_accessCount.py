@@ -24,24 +24,24 @@ def main(read_file_name):
                  )
 
   #only readi
-  groupdf['readicount'] = groupdf['count']
-  groupdf.loc[(groupdf.type!='readi'), 'readicount'] = 0
+  df['readicount'] = df['count']
+  df.loc[(df.type!='readi'), 'readicount'] = 0
   #only readd
-  groupdf['readdcount'] = groupdf['count']
-  groupdf.loc[(groupdf.type!='readd'), 'readdcount'] = 0
+  df['readdcount'] = df['count']
+  df.loc[(df.type!='readd'), 'readdcount'] = 0
   #only write
-  groupdf['writecount'] = groupdf['count']
-  groupdf.loc[(groupdf.type!='write'), 'writecount'] = 0
+  df['writecount'] = df['count']
+  df.loc[(df.type!='write'), 'writecount'] = 0
 
   plt.style.use('default')
   plt.rcParams['figure.figsize'] = (12, 10)
   #plt.rcParams['font.size'] = 12
 
   fig, ax = plt.subplots(figsize=(12,10))
-  x = groupdf['block_address']
-  y1 = groupdf['readicount']
-  y2 = groupdf['readdcount']
-  y3 = groupdf['writecount']
+  x = df['block_address']
+  y1 = df['readicount']
+  y2 = df['readdcount']
+  y3 = df['writecount']
 
   plt.scatter(x, y3, color='red', label='write')
   plt.scatter(x, y2, color='blue', label='read data')
