@@ -15,7 +15,7 @@ import sys
 def main(read_file_name, chunksize):
   index = read_file_name.rfind(".")
   write_file_name = read_file_name[:index]
-  chunks = pd.read_csv(filename,chunksize=chunksize, skiprows = 1, names=['type', 'address', 'size', 'block_address'], skipinitialspace=True, delim_whitespace=True, lineterminator="\n")
+  chunks = pd.read_csv(read_file_name,chunksize=chunksize, skiprows = 1, names=['type', 'address', 'size', 'block_address'], skipinitialspace=True, delim_whitespace=True, lineterminator="\n")
   pieces = [x.groupby(['type', 'block_address']).size().reset_index(name='count') for x in chunks]
 
   agg = pd.concat(pieces).groupby(['type', 'block_address'])['count'].sum().reset_index(name='count')
@@ -37,4 +37,3 @@ if __name__ == "__main__":
                     help="checkpoint for step")
   args = parser.parse_args()
   main(args.filename, args.step)
-  
