@@ -19,7 +19,7 @@ def main(read_file_name):
   index = read_file_name.rfind(".")
   output_img_name = read_file_name[:index]
   df = pd.read_csv(read_file_name,
-                 skipinitialspace=True, delim_whitespace=True, lineterminator="\n", 
+                 skipinitialspace=True, lineterminator="\n", 
                  comment='='
                  )
 
