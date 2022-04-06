@@ -63,8 +63,8 @@ def main(read_file_name, STEP):
 
   pointer = 0
   num_lines = sum(1 for line in open(read_file_name))
-  for chunks in pd.read_csv(read_file_name, chunksize=STEP, skiprows = 1, names=['type', 'address', 'size', 'block_address'], skipinitialspace=True, delim_whitespace=True, lineterminator="\n"):
-    with alive_bar(num_lines, force_tty=True) as bar:
+  with alive_bar(num_lines, force_tty=True) as bar:
+    for chunks in pd.read_csv(read_file_name, chunksize=STEP, skiprows = 1, names=['type', 'address', 'size', 'block_address'], skipinitialspace=True, delim_whitespace=True, lineterminator="\n"):
       chunks = chunks.reset_index()
       for index, chunk in chunks.iterrows():
         rank = -1
@@ -80,7 +80,6 @@ def main(read_file_name, STEP):
         pointer += 1
         time.sleep(.005)
         bar()
-      
       tojson(pointer, write_file_name, ranking_access) # check point
   totxt(pointer, write_file_name, ranking_access)
 
