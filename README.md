@@ -46,3 +46,7 @@ readd 0x000000000402df48 8 1648526782.529808930
 * (virtual) address
 * referenced address size
 * timestamp(sec)
+
+## Tools
+- gnuplot
+- python pandas, numpy, matplotlib
