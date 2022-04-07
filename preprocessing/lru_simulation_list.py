@@ -19,25 +19,26 @@ import json
 class LRUCache: # Both reads & writes affect rank changes
     def __init__(self):
         self.cache = []
+        self.addresses = set()
         # self.capacity = capacity # initialising capacity
 
     def read(self, key: int) -> int:
-        index = 1
-        rank = -1
-        for i in self.cache: # return previous rank of key 
-          if i == key:
-            rank = index
-            break
-          index += 1
-        if rank != -1: # if key in the cache list
+        if key in self.addresses:
+          rank=1
+          for i in self.cache: # return previous rank of key 
+            if i == key:
+              break
+            rank += 1
           del self.cache[rank]
           self.cache.insert(0, key) # move the key to the front when recently used
-        return rank
- 
+          return rank
+        return -1
+
     def write(self, key: int) -> int:
         rank = self.read(key)
         if rank == -1: # if key is not in the cache list
           self.cache.insert(0, key)
+          self.addresses.add(key)
         return rank
 
 def tojson(pointer, write_file_name, ranking_access):
@@ -62,9 +63,10 @@ def main(read_file_name, STEP):
   cache = LRUCache()
 
   pointer = 0
-  num_lines = sum(1 for line in open(read_file_name))
-  with alive_bar(num_lines, force_tty=True) as bar:
-    for chunks in pd.read_csv(read_file_name, chunksize=STEP, skiprows = 1, names=['type', 'address', 'size', 'block_address'], skipinitialspace=True, delim_whitespace=True, lineterminator="\n"):
+  # num_lines = sum(1 for line in open(read_file_name))
+  # with alive_bar(num_lines, force_tty=True) as bar:
+  for chunks in pd.read_csv(read_file_name, chunksize=STEP, skiprows = 1, names=['type', 'address', 'size', 'block_address'], skipinitialspace=True, delim_whitespace=True, lineterminator="\n"):
+    with alive_bar(STEP, force_tty=True) as bar:  
       chunks = chunks.reset_index()
       for index, chunk in chunks.iterrows():
         rank = -1
