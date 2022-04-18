@@ -51,6 +51,7 @@ readd 0x000000000402df48 8 1648526782.529808930
 #### /proc/{PID}/maps
 - 모든 프로세스는 가상 메모리 매니저에 의해 제공되는 가장 주소공간을 가지는데, 이러한 프로세스의 메모리 주소 공간을 보여준다.
 - address, permission, offset, device number(major:minor), inode, pathname 순서로 표기된다.
+  - permission
   - permission에서 p=private(copy on write)
 - `code segment`; r-xp, 실행할 수 있는 코드가 저장된 메모리 공간은 읽고 실행할 수 있는 권한은 필요하나, 쓰기 권한은 필요없음
 - `data segment`; rw-p, data 영역은 읽고 쓸수는 있지만, 실행할 수 있는 영역은 아니다. Data segments에 위치하는 변수들은 초기화된 전역변수들이다.
