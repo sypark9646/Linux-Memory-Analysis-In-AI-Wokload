@@ -52,8 +52,8 @@ readd 0x000000000402df48 8 1648526782.529808930
 - 모든 프로세스는 가상 메모리 매니저에 의해 제공되는 가장 주소공간을 가지는데, 이러한 프로세스의 메모리 주소 공간을 보여준다.
 - address, permission, offset, device number(major:minor), inode, pathname 순서로 표기된다.
   - permission에서 p=private(copy on write)
-- code segment; r-xp, 실행할 수 있는 코드가 저장된 메모리 공간은 읽고 실행할 수 있는 권한은 필요하나, 쓰기 권한은 필요없음
-- data segment; rw-p, data 영역은 읽고 쓸수는 있지만, 실행할 수 있는 영역은 아니다. Data segments에 위치하는 변수들은 초기화된 전역변수들이다.
+- `code segment`; r-xp, 실행할 수 있는 코드가 저장된 메모리 공간은 읽고 실행할 수 있는 권한은 필요하나, 쓰기 권한은 필요없음
+- `data segment`; rw-p, data 영역은 읽고 쓸수는 있지만, 실행할 수 있는 영역은 아니다. Data segments에 위치하는 변수들은 초기화된 전역변수들이다.
   ```text
   00400000-00423000 r--p 00000000 08:05 4588536                            /usr/bin/python3.8
   00423000-006b8000 r-xp 00023000 08:05 4588536                            /usr/bin/python3.8
@@ -61,7 +61,7 @@ readd 0x000000000402df48 8 1648526782.529808930
   008f5000-008f6000 r--p 004f4000 08:05 4588536                            /usr/bin/python3.8
   008f6000-0093d000 rw-p 004f5000 08:05 4588536                            /usr/bin/python3.8
   ```
-- shared library; 실행파일의 공유 라이브러리가 로드되는 위치를 정의한다.
+- `shared library`; 실행파일의 공유 라이브러리가 로드되는 위치를 정의한다.
   ```text
   04000000-04001000 r--p 00000000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
   04001000-04024000 r-xp 00001000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
@@ -69,9 +69,9 @@ readd 0x000000000402df48 8 1648526782.529808930
   0402d000-0402e000 r--p 0002c000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
   0402e000-0402f000 rw-p 0002d000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
   ```
-- heap segment; Heap 변수(런타임에 동적 할당)들이 위치한다. r추가로 Heap segment에는 bss section도 포함되어 있다. 
+- `heap segment`; Heap 변수(런타임에 동적 할당)들이 위치한다. r추가로 Heap segment에는 bss section도 포함되어 있다. 
   - bss section: 초기화되지 않은 전역변수들이 위치하는 메모리 영역
-- stack segment; 지역 변수들이나 함수 파라미터등 다양한 요소들이 위치한다.
+- `stack segment`; 지역 변수들이나 함수 파라미터등 다양한 요소들이 위치한다.
   ```text
   7ffcf0630000-7ffcf0651000 rw-p 00000000 00:00 0                          [stack]
   7ffcf079f000-7ffcf07a3000 r--p 00000000 00:00 0                          [vvar]
@@ -79,9 +79,32 @@ readd 0x000000000402df48 8 1648526782.529808930
   ```
 - 출처: https://linuxias.github.io/linux/debugging/proc_filesystem/
 #### pmap -x {PID} | less
-
 #### /proc/{PID}/status
-
+```text
+Name:	callgrind-amd64
+Umask:	0002
+State:	R (running)
+...
+VmPeak:	 1840320 kB
+VmSize:	 1840320 kB
+VmLck:	       0 kB
+...
+VmData:	  484604 kB
+VmStk:	     132 kB
+VmExe:	    1912 kB
+VmLib:	 1311712 kB
+VmPTE:	    1156 kB
+VmSwap:	       0 kB
+...
+```
+- `VmSize`: 프로세스에 할당된 SWAP 메모리 + 물리 메모리의 합산량
+  - `SWAP 사용량`=`VmSize`-`VmRSS`
+- `VmRSS`: 프로세스에 실제 할당된 물리적 메모리 사이즈
+- `VmLck`: 가상메모리에 스왑아웃 될수 없는 영역에 대한 메모리의 크기
+- `VmData`: 프로세스를 실행하기위한 동적 Heap 영역
+- `VmStk`: 프로세스 내에서 수행되는 지역변수 할당을 위한 Stack 영역
+- `VmExe`: 프로세스의 실행코드 영역 (전역변수 및 실행코드)
+- `VmLib`: 동적으로 연결된 라이브러리 영역
 ## Tools
 - gnuplot
 - python pandas, numpy, matplotlib
