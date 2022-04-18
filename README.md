@@ -78,6 +78,7 @@ readd 0x000000000402df48 8 1648526782.529808930
   ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
   ```
 - 출처: https://linuxias.github.io/linux/debugging/proc_filesystem/
+- 출처: https://www.baeldung.com/linux/proc-id-maps
 #### pmap -x {PID} | less
 #### /proc/{PID}/status
 ```text
