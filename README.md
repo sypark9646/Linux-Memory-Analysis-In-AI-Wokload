@@ -5,7 +5,7 @@
 
 
 ## Raw Trace Data
-```txt
+```text
 ==190689== Callgrind, a call-graph generating cache profiler
 ==190689== Copyright (C) 2002-2017, and GNU GPL'd, by Josef Weidendorfer et al.
 ==190689== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
@@ -46,6 +46,41 @@ readd 0x000000000402df48 8 1648526782.529808930
 * (virtual) address
 * referenced address size
 * timestamp(sec)
+
+## Check
+#### /proc/{PID}/maps
+- 모든 프로세스는 가상 메모리 매니저에 의해 제공되는 가장 주소공간을 가지는데, 이러한 프로세스의 메모리 주소 공간을 보여준다.
+- address, permission, offset, device number(major:minor), inode, pathname 순서로 표기된다.
+  - permission에서 p=private(copy on write)
+- code segment; r-xp, 실행할 수 있는 코드가 저장된 메모리 공간은 읽고 실행할 수 있는 권한은 필요하나, 쓰기 권한은 필요없음
+- data segment; rw-p, data 영역은 읽고 쓸수는 있지만, 실행할 수 있는 영역은 아니다. Data segments에 위치하는 변수들은 초기화된 전역변수들이다.
+  ```text
+  00400000-00423000 r--p 00000000 08:05 4588536                            /usr/bin/python3.8
+  00423000-006b8000 r-xp 00023000 08:05 4588536                            /usr/bin/python3.8
+  006b8000-008f5000 r--p 002b8000 08:05 4588536                            /usr/bin/python3.8
+  008f5000-008f6000 r--p 004f4000 08:05 4588536                            /usr/bin/python3.8
+  008f6000-0093d000 rw-p 004f5000 08:05 4588536                            /usr/bin/python3.8
+  ```
+- shared library; 실행파일의 공유 라이브러리가 로드되는 위치를 정의한다.
+  ```text
+  04000000-04001000 r--p 00000000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
+  04001000-04024000 r-xp 00001000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
+  04024000-0402c000 r--p 00024000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
+  0402d000-0402e000 r--p 0002c000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
+  0402e000-0402f000 rw-p 0002d000 08:05 4589712                            /usr/lib/x86_64-linux-gnu/ld-2.31.so
+  ```
+- heap segment; Heap 변수(런타임에 동적 할당)들이 위치한다. r추가로 Heap segment에는 bss section도 포함되어 있다. 
+  - bss section: 초기화되지 않은 전역변수들이 위치하는 메모리 영역
+- stack segment; 지역 변수들이나 함수 파라미터등 다양한 요소들이 위치한다.
+  ```text
+  7ffcf0630000-7ffcf0651000 rw-p 00000000 00:00 0                          [stack]
+  7ffcf079f000-7ffcf07a3000 r--p 00000000 00:00 0                          [vvar]
+  ffffffffff600000-ffffffffff601000 --xp 00000000 00:00 0                  [vsyscall]
+  ```
+- 출처: https://linuxias.github.io/linux/debugging/proc_filesystem/
+#### pmap -x {PID} | less
+
+#### /proc/{PID}/status
 
 ## Tools
 - gnuplot
