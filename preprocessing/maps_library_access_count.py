@@ -50,13 +50,22 @@ def dataframe_group_by_access_count(df):
 
 
 def load_logfile_to_dataframe(read_file_name):
-    df = pd.read_csv(read_file_name, delimiter='*', lineterminator='\n', header=None)
-    memory_df = df.loc[df.iloc[:, 0].str.contains(r'^(r|w).*')]  # subset dataframe to only the columns you want
-    # split columns
-    memory_df['address'] = memory_df[0].str.split(' ').str[1]
-    memory_df['block_address'] = memory_df['address'].apply(int, base=16)
-    memory_df = memory_df.drop(columns=0)  # drop first columns
-    return memory_df
+    df = pd.DataFrame(columns=['block_address', 'count'])
+
+    for chunks in pd.read_csv(read_file_name, chunksize=1000000, delimiter='*', lineterminator='\n', header=None):
+        memory_df = chunks.loc[chunks.iloc[:, 0].str.contains(r'^(r|w).*')]  # subset dataframe to only the columns you want
+        if len(memory_df) == 0:
+            continue
+
+        # split columns
+        memory_df['type'] = memory_df[0].str.split(' ').str[0]
+        memory_df['block_address'] = memory_df[0].str.split(' ').str[1].apply(int, base=16)
+        memory_df = memory_df.drop(columns=0)  # drop first columns
+        memory_df = dataframe_group_by_access_count(memory_df)
+        df = pd.concat([df, memory_df[["block_address", "count"]]])
+        df = df.groupby('block_address')['count'].sum()
+
+    return df
 
 
 def to_json(write_file_name, process_library_count):
