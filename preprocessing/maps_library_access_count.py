@@ -4,6 +4,7 @@ import json
 import os
 import time
 
+import pandas as pd
 from alive_progress import alive_bar
 
 
@@ -33,13 +34,29 @@ class ProcessMapping:
 
     def address_find_library(self, address):
         for index in range(len(self.libraries)):
-            if address in range(self.start_addresses[index], self.end_addresses[index]):
+            if self.start_addresses[index] <= address <= self.end_addresses[index]:
                 return self.libraries[index]
         return None
 
-    def address_library_access_count(self, address):
+    def address_library_access_count(self, address, count):
         library = self.address_find_library(address)
-        self.process_libraryCount[library] = self.process_libraryCount.get(library, 0) + 1
+        self.process_libraryCount[library] = self.process_libraryCount.get(library, 0) + count
+
+
+def dataframe_group_by_access_count(df):
+    group = df.groupby(['block_address'])
+    group_df = group.size().reset_index(name='count')
+    return group_df
+
+
+def load_logfile_to_dataframe(read_file_name):
+    df = pd.read_csv(read_file_name, delimiter='*', lineterminator='\n', header=None)
+    memory_df = df.loc[df.iloc[:, 0].str.contains(r'^(r|w).*')]  # subset dataframe to only the columns you want
+    # split columns
+    memory_df['address'] = memory_df[0].str.split(' ').str[1]
+    memory_df['block_address'] = memory_df['address'].apply(int, base=16)
+    memory_df = memory_df.drop(columns=0)  # drop first columns
+    return memory_df
 
 
 def to_json(write_file_name, process_library_count):
@@ -56,13 +73,16 @@ def main(read_file_name, mapping_file):
     process_mapping = ProcessMapping()
     process_mapping.load_mapping_file(mapping_file)
 
-    num_lines = sum(1 for line in open(read_file_name))
+    df = load_logfile_to_dataframe(read_file_name)
+    df = dataframe_group_by_access_count(df)
+    print(df.head())
+
+    num_lines = len(df)
     with alive_bar(num_lines, force_tty=True) as bar:
-        for line in open(read_file_name, 'r').readlines():
-            chunk = line.split()
-            if chunk[0].startswith('read') or chunk[0].startswith('write'):
-                block_address = int(str(chunk[1]), 16)
-                process_mapping.address_library_access_count(block_address)
+        for index, row in df.iterrows():
+            block_address = row['block_address']
+            count = row['count']
+            process_mapping.address_library_access_count(block_address, count)
 
             time.sleep(.005)
             bar()
