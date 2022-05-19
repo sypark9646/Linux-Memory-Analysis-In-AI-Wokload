@@ -18,7 +18,7 @@ class ProcessMapping:
     def load_mapping_file(self, read_file_name):
         for line in open(read_file_name, 'r').readlines():
             variables = line.split()
-            if variables[-1] == 0:  # indicates that no inode is associated with the memory region
+            if variables[-1] == "0":  # indicates that no inode is associated with the memory region
                 continue
 
             start_address, end_address = variables[0].split('-')
