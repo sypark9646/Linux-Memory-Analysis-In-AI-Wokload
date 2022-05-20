@@ -95,8 +95,8 @@ def preprocess_block_number(write_file_name, read_file_name, process_mapping):
                     data_line.pop()  # address
                     data_line.insert(0, str(index))
 
-                    type = data_line.pop()
-                    type_to_int = Type[type].value  # type
+                    access_type = data_line.pop()
+                    type_to_int = Type[access_type].value  # type
                     data_line.append(str(type_to_int))
 
                     library_name = process_mapping.get_library_name(block_address)
