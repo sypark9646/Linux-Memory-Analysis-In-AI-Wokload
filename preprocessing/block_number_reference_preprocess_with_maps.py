@@ -93,21 +93,24 @@ def preprocess_block_number(write_file_name, read_file_name, process_mapping):
                     data_line.pop()  # size
                     block_address = int(data_line[1], 16)
                     data_line.pop()  # address
-                    data_line.insert(0, str(index))
+                    access_type = data_line.pop()  # type
 
-                    access_type = data_line.pop()
-                    type_to_int = Type[access_type].value  # type
-                    data_line.append(str(type_to_int))
+                    data_line.append(str(index))  # index
+
+                    type_to_int = Type[access_type].value
+                    data_line.append(str(type_to_int))  # type to int
 
                     library_name = process_mapping.get_library_name(block_address)
                     if library_name:
-                        data_line.append(str(process_mapping.library_to_int[library_name]))
+                        data_line.append(str(process_mapping.library_to_int[library_name]))  # library to int
+                    else:
+                        data_line.append("-1")  # no mapping shared library
 
                     index += 1
                     if block_address not in block_num_map:
                         block_number += 1
                         block_num_map[block_address] = block_number
-                    data_line.append(str(block_num_map[block_address]))
+                    data_line.append(str(block_num_map[block_address]))  # block number
 
                     file_write.write(" ".join(data_line) + "\n")
                 bar()
@@ -126,7 +129,6 @@ def main(read_file_name, mapping_file):
     to_json(write_file_name, process_mapping.library_to_int)
 
     preprocess_block_number(write_file_name, read_file_name, process_mapping)
-    txt_to_csv(write_file_name)
 
 
 def is_valid_file(parser, arg):
@@ -137,7 +139,7 @@ def is_valid_file(parser, arg):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='preprocess to draw blocknumber - logicaltime reference graph')
+    parser = argparse.ArgumentParser(description='preprocess to draw block number - logical time reference graph')
     parser.add_argument("-i", dest="read_file_name", required=True,
                         help="input trace data",
                         type=lambda x: is_valid_file(parser, x))
