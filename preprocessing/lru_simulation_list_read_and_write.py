@@ -9,7 +9,7 @@ import pandas as pd
 from alive_progress import alive_bar
 
 
-class LRUCache:  # Only write affect rank changes
+class LRUCache:  # Both read & write affect rank changes
     def __init__(self):
         self.cache = []
         self.addresses = set()
