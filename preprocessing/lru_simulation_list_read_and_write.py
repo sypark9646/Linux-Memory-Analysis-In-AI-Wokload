@@ -47,7 +47,7 @@ def to_txt(write_file_name, type, ranking_access):
 
 
 def main(read_file_name):
-    print("process", read_file_name, "and save every", str(step), "lines.")
+    print("process", read_file_name)
     index = read_file_name.rfind(".")
     write_file_name = read_file_name[:index]
 
