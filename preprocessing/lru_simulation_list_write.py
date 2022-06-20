@@ -9,27 +9,25 @@ import pandas as pd
 from alive_progress import alive_bar
 
 
-class LRUCache:  # Both reads & writes affect rank changes
+class LRUCache:  # Only write affect rank changes
     def __init__(self):
         self.cache = []
         self.addresses = set()
         # self.capacity = capacity # initialising capacity
 
     def read(self, key: int) -> int:
-        if key in self.addresses:
+        if key in self.addresses:  # re-referenced
             rank = 1
             for i in self.cache:  # return previous rank of key
                 if i == key:
                     break
                 rank += 1
-            del self.cache[rank - 1]
-            self.cache.insert(0, key)  # move the key to the front when recently used
             return rank
         return -1
 
     def write(self, key: int) -> int:
         rank = self.read(key)
-        if rank == -1:  # if key is not in the cache list
+        if rank != -1:  # re-referenced
             self.cache.insert(0, key)
             self.addresses.add(key)
         return rank
@@ -41,27 +39,27 @@ def to_json(pointer, write_file_name, ranking_access):
     print("saved", f"{write_file_name}_LRU_{pointer}.json")
 
 
-def to_txt(pointer, write_file_name, ranking_access):
-    file_write = open(f"{write_file_name}_LRU_{pointer}.txt", "w")
+def to_txt(write_file_name, type, ranking_access):
+    file_write = open(f"{write_file_name}_{type}_LRU.txt", "w")
     file_write.write("rank access_number\n")
     for rank in sorted(ranking_access):
         file_write.write(str(rank) + " " + str(ranking_access[rank]) + "\n")
-    print("saved", f"{write_file_name}_LRU_{pointer}.txt")
     file_write.close()
 
 
-def main(read_file_name, step):
+def main(read_file_name):
     print("process", read_file_name, "and save every", str(step), "lines.")
     index = read_file_name.rfind(".")
     write_file_name = read_file_name[:index]
 
-    ranking_access = {}
+    read_ranking_access = {}
+    write_ranking_access = {}
     cache = LRUCache()
 
     pointer = 0
     num_lines = sum(1 for line in open(read_file_name))
     with alive_bar(num_lines, force_tty=True) as bar:
-        for chunks in pd.read_csv(read_file_name, chunksize=step, skiprows=1,
+        for chunks in pd.read_csv(read_file_name, chunksize=1000000, skiprows=1,
                                   names=['type', 'address', 'size', 'block_address'], skipinitialspace=True,
                                   delim_whitespace=True, lineterminator="\n"):
             # with alive_bar(step, force_tty=True) as bar:
@@ -74,14 +72,18 @@ def main(read_file_name, step):
                     rank = cache.write(chunk['block_address'])
 
                 if rank != -1:
-                    ranking_access.setdefault(rank, 0)
-                    ranking_access[rank] = ranking_access[rank] + 1
+                    if chunk['type'].startswith('read'):
+                        read_ranking_access.setdefault(rank, 0)
+                        read_ranking_access[rank] = read_ranking_access[rank] + 1
+                    else:  # data_type.startswith('write'):
+                        write_ranking_access.setdefault(rank, 0)
+                        write_ranking_access[rank] = write_ranking_access[rank] + 1
 
                 pointer += 1
                 time.sleep(.005)
                 bar()
-            to_json(pointer, write_file_name, ranking_access)  # check point
-    to_txt(pointer, write_file_name, ranking_access)  # save result
+    to_txt(write_file_name, 'read', read_ranking_access)
+    to_txt(write_file_name, 'write', write_ranking_access)
 
 
 def is_valid_file(parser, arg):
@@ -96,7 +98,5 @@ if __name__ == "__main__":
     parser.add_argument("-i", dest="filename", required=True,
                         help="input cleared trace data",
                         type=lambda x: is_valid_file(parser, x))
-    parser.add_argument("-c", dest="step", default=1000000, type=int,
-                        help="checkpoint for step")
     args = parser.parse_args()
-    main(args.filename, args.step)
+    main(args.filename)
