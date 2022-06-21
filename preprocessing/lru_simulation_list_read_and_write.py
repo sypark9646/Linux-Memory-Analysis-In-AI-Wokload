@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import argparse
 import json
 import os
@@ -16,6 +15,7 @@ class LRUCache:  # Both read & write affect rank changes
         # self.capacity = capacity # initialising capacity
 
     def read(self, key: int) -> int:
+        rank = -1
         if key in self.addresses:  # re-referenced
             rank = 1
             for i in self.cache:  # return previous rank of key
@@ -23,19 +23,19 @@ class LRUCache:  # Both read & write affect rank changes
                     break
                 rank += 1
             del self.cache[rank - 1]
-            self.cache.insert(0, key)  # move the key to the front when recently used
-            return rank
-        return -1
+        self.addresses.add(key)
+        self.cache.insert(0, key)  # move the key to the front when recently used
+        return rank
 
     def write(self, key: int) -> int:
         rank = self.read(key)
         return rank
 
 
-def to_json(pointer, write_file_name, ranking_access):
-    with open(f"{write_file_name}_LRU_{pointer}.json", 'w') as fp:
+def to_json(pointer, write_file_name, type, ranking_access):
+    with open(f"{write_file_name}_{type}_{pointer}_LRU.json", 'w') as fp:
         json.dump(ranking_access, fp)
-    print("saved", f"{write_file_name}_LRU_{pointer}.json")
+    print(f"save {write_file_name}_{type}_{pointer}_LRU.json")
 
 
 def to_txt(write_file_name, type, ranking_access):
@@ -55,11 +55,11 @@ def main(read_file_name):
     write_ranking_access = {}
     cache = LRUCache()
 
-    pointer = 0
     num_lines = sum(1 for line in open(read_file_name))
+    pointer = 1
     with alive_bar(num_lines, force_tty=True) as bar:
-        for chunks in pd.read_csv(read_file_name, chunksize=1000000, skiprows=1,
-                                  names=['type', 'address', 'size', 'block_address'], skipinitialspace=True,
+        for chunks in pd.read_csv(read_file_name, chunksize=1000, skiprows=1, skipinitialspace=True,
+                                  names=['type', 'address', 'size', 'block_address'],
                                   delim_whitespace=True, lineterminator="\n"):
             # with alive_bar(step, force_tty=True) as bar:
             chunks = chunks.reset_index()
@@ -81,8 +81,10 @@ def main(read_file_name):
                 pointer += 1
                 time.sleep(.005)
                 bar()
-    to_txt(write_file_name, 'read', read_ranking_access)
-    to_txt(write_file_name, 'write', write_ranking_access)
+            to_json(pointer, write_file_name, 'read', read_ranking_access)
+            to_json(pointer, write_file_name, 'write', write_ranking_access)
+        to_txt(write_file_name, 'read', read_ranking_access)
+        to_txt(write_file_name, 'write', write_ranking_access)
 
 
 def is_valid_file(parser, arg):
