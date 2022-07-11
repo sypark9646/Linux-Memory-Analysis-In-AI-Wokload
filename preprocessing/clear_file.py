@@ -17,8 +17,8 @@ def main(read_file_name, write_file_name, start_time, end_time):
                 if float(data_line[-1]) > end_time:
                     break
                 if float(data_line[-1]) >= start_time:
-                    data_line.pop()
-                    block_address = int(str(data_line[1]), 16)
+                    data_line.pop()  # time
+                    block_address = int(str(data_line[1]), 16) >> 12
                     data_line.append(str(block_address))
                     file_write.write(" ".join(data_line) + "\n")
     file_write.close()
