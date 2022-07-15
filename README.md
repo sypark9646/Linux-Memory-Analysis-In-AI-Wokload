@@ -110,6 +110,17 @@ VmSwap:	       0 kB
 - `VmStk`: 프로세스 내에서 수행되는 지역변수 할당을 위한 Stack 영역
 - `VmExe`: 프로세스의 실행코드 영역 (전역변수 및 실행코드)
 - `VmLib`: 동적으로 연결된 라이브러리 영역
+#### /proc/{pid}/statm
+```text
+2811369 663799 137775 664 0 768482 0
+```
+- 프로그램 총 크기 (KB)
+- 메모리 영역 크기 (KB)
+- 공유 페이지 수
+- 코드 페이지 수
+- 데이터/스택 페이지 수
+- 라이브러리 페이지 수
+- Dirty 페이지 수
 ## Tools
 - gnuplot
 - python pandas, numpy, matplotlib
