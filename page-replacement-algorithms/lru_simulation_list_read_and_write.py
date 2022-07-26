@@ -4,7 +4,6 @@ import json
 import os
 import time
 
-import pandas as pd
 from alive_progress import alive_bar
 
 
@@ -58,33 +57,34 @@ def main(read_file_name):
     num_lines = sum(1 for line in open(read_file_name))
     pointer = 1
     with alive_bar(num_lines, force_tty=True) as bar:
-        for chunks in pd.read_csv(read_file_name, chunksize=1000, skiprows=1, skipinitialspace=True,
-                                  names=['type', 'address', 'size', 'block_address'],
-                                  delim_whitespace=True, lineterminator="\n"):
-            # with alive_bar(step, force_tty=True) as bar:
-            chunks = chunks.reset_index()
-            for index, chunk in chunks.iterrows():
-                rank = -1
-                if chunk['type'].startswith('read'):
-                    rank = cache.read(chunk['block_address'])
-                else:  # data_type.startswith('write'):
-                    rank = cache.write(chunk['block_address'])
+        with open(read_file_name) as f:
+            for line in f:
+                if line.startswith('read') or line.startswith('write'):
+                    chunk = line.split()
+                    block_address = int(chunk.pop())
+                    type = chunk[0]
+                    rank = -1
+                    if type.startswith('read'):
+                        rank = cache.read(block_address)
+                    elif type.startswith('write'):  # data_type.startswith('write'):
+                        rank = cache.write(block_address)
 
-                if rank != -1:
-                    if chunk['type'].startswith('read'):
-                        read_ranking_access.setdefault(rank, 0)
-                        read_ranking_access[rank] = read_ranking_access[rank] + 1
-                    else:  # data_type.startswith('write'):
-                        write_ranking_access.setdefault(rank, 0)
-                        write_ranking_access[rank] = write_ranking_access[rank] + 1
+                    if rank != -1:
+                        if type.startswith('read'):
+                            read_ranking_access.setdefault(rank, 0)
+                            read_ranking_access[rank] = read_ranking_access[rank] + 1
+                        elif type.startswith('write'):
+                            write_ranking_access.setdefault(rank, 0)
+                            write_ranking_access[rank] = write_ranking_access[rank] + 1
 
-                pointer += 1
-                time.sleep(.005)
-                bar()
-            to_json(pointer, write_file_name, 'read', read_ranking_access)
-            to_json(pointer, write_file_name, 'write', write_ranking_access)
-        to_txt(write_file_name, 'read', read_ranking_access)
-        to_txt(write_file_name, 'write', write_ranking_access)
+                    pointer += 1
+                    bar()
+
+                if pointer % 1000000 == 0:
+                    to_json(pointer, write_file_name, 'read', read_ranking_access)
+                    to_json(pointer, write_file_name, 'write', write_ranking_access)
+            to_txt(write_file_name, 'read', read_ranking_access)
+            to_txt(write_file_name, 'write', write_ranking_access)
 
 
 def is_valid_file(parser, arg):
